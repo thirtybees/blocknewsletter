@@ -24,7 +24,7 @@
 *  International Registered Trademark & Property of PrestaShop SA
 */
 
-if (!defined('_PS_VERSION_'))
+if (!defined('_TB_VERSION_'))
 	exit;
 
 class Blocknewsletter extends Module
@@ -50,8 +50,8 @@ class Blocknewsletter extends Module
 		$this->confirmUninstall = $this->l('Are you sure that you want to delete all of your contacts?');
 		$this->ps_versions_compliancy = array('min' => '1.6', 'max' => '1.6.99.99');
 
-		$this->version = '2.3.2';
-		$this->author = 'PrestaShop';
+		$this->version = '3.0.0';
+		$this->author = 'thirty bees';
 		$this->error = false;
 		$this->valid = false;
 		$this->_files = array(
