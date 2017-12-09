@@ -1,0 +1,14 @@
+module_name: Block Newsletter
+compatible_versions: 1.0.0+
+author: thirty bees
+category: front office
+tags:
+  - newsletter
+  - marketing
+  - email
+  - advertising
+description_short: The block newsletter allows you to add an email newsletter signup to your site.
+description: description.md
+images:
+  - image-1.png
+license: AFL
