@@ -45,7 +45,7 @@ class Blocknewsletter extends Module
 		$this->bootstrap = true;
 		parent::__construct();
 
-		$this->displayName = $this->l('Newsletter block');
+		$this->displayName = $this->l('Block Newsletter');
 		$this->description = $this->l('Adds a block for newsletter subscription.');
 		$this->confirmUninstall = $this->l('Are you sure that you want to delete all of your contacts?');
 		$this->ps_versions_compliancy = array('min' => '1.6', 'max' => '1.6.99.99');
