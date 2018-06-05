@@ -47,6 +47,7 @@ class Blocknewsletter extends Module
 		$this->displayName = $this->l('Block Newsletter');
 		$this->description = $this->l('Adds a block for newsletter subscription.');
 		$this->confirmUninstall = $this->l('Are you sure that you want to delete all of your contacts?');
+		$this->tb_versions_compliancy = '> 1.0.0';
 		$this->ps_versions_compliancy = array('min' => '1.6', 'max' => '1.6.99.99');
 
 		$this->version = '3.0.0';
