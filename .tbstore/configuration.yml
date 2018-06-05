@@ -11,4 +11,11 @@ description_short: The block newsletter allows you to add an email newsletter si
 description: description.md
 images:
   - image-1.png
+gdpr_compliant: false
 license: AFL
+php_version:
+  - 5.5
+  - 5.6
+  - 7.0
+  - 7.1
+  - 7.2
