@@ -3,20 +3,20 @@ compatible_versions: 1.0.0+
 author: thirty bees
 category: front office
 tags:
-- newsletter
-- marketing
-- email
-- advertising
-- blocknewsletter
+  - newsletter
+  - marketing
+  - email
+  - advertising
+  - blocknewsletter
 description_short: The block newsletter allows you to add an email newsletter signup to your site.
 description: description.md
 images:
-- image-1.png
+  - image-1.png
 gdpr_compliant: false
 license: AFL
 php_version:
-- 5.5
-- 5.6
-- 7.0
-- 7.1
-- 7.2
+  - 5.5
+  - 5.6
+  - 7.0
+  - 7.1
+  - 7.2
