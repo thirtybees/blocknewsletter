@@ -153,7 +153,7 @@ class Blocknewsletter extends Module
 				$this->_html .= $this->displayError($this->l('The voucher code is invalid.'));
 			else
 			{
-				Configuration::updateValue('NW_VOUCHER_CODE', pSQL($voucher));
+				Configuration::updateValue('NW_VOUCHER_CODE', $voucher);
 				$this->_html .= $this->displayConfirmation($this->l('Settings updated'));
 			}
 		}
