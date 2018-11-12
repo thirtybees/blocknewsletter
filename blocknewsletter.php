@@ -548,7 +548,7 @@ class Blocknewsletter extends Module
 	{
 		$sql = 'SELECT `email`
 				FROM `'._DB_PREFIX_.'newsletter`
-				WHERE MD5(CONCAT( `email` , `newsletter_date_add`, \''.pSQL(Configuration::get('NW_SALT')).'\')) = \''.pSQL($token).'\'
+				WHERE MD5(CONCAT( `email` , `newsletter_date_add`, \''.Configuration::get('NW_SALT').'\')) = \''.pSQL($token).'\'
 				AND `active` = 0';
 
 		return Db::getInstance()->getValue($sql);
@@ -565,7 +565,7 @@ class Blocknewsletter extends Module
 	{
 		$sql = 'SELECT `email`
 				FROM `'._DB_PREFIX_.'customer`
-				WHERE MD5(CONCAT( `email` , `date_add`, \''.pSQL(Configuration::get('NW_SALT')).'\')) = \''.pSQL($token).'\'
+				WHERE MD5(CONCAT( `email` , `date_add`, \''.Configuration::get('NW_SALT').'\')) = \''.pSQL($token).'\'
 				AND `newsletter` = 0';
 
 		return Db::getInstance()->getValue($sql);
@@ -581,14 +581,14 @@ class Blocknewsletter extends Module
 	{
 		if (in_array($register_status, array(self::GUEST_NOT_REGISTERED, self::GUEST_REGISTERED)))
 		{
-			$sql = 'SELECT MD5(CONCAT( `email` , `newsletter_date_add`, \''.pSQL(Configuration::get('NW_SALT')).'\')) as token
+			$sql = 'SELECT MD5(CONCAT( `email` , `newsletter_date_add`, \''.Configuration::get('NW_SALT').'\')) as token
 					FROM `'._DB_PREFIX_.'newsletter`
 					WHERE `active` = 0
 					AND `email` = \''.pSQL($email).'\'';
 		}
 		else if ($register_status == self::CUSTOMER_NOT_REGISTERED)
 		{
-			$sql = 'SELECT MD5(CONCAT( `email` , `date_add`, \''.pSQL(Configuration::get('NW_SALT')).'\' )) as token
+			$sql = 'SELECT MD5(CONCAT( `email` , `date_add`, \''.Configuration::get('NW_SALT').'\' )) as token
 					FROM `'._DB_PREFIX_.'customer`
 					WHERE `newsletter` = 0
 					AND `email` = \''.pSQL($email).'\'';
