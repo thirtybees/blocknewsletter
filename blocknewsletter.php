@@ -248,14 +248,6 @@ class Blocknewsletter extends Module
 		$helper_list->token = Tools::getAdminTokenLite('AdminModules');
 		$helper_list->actions = array('viewCustomer');
 
-		/* Before 1.6.0.7 displayEnableLink() could not be overridden in Module class
-		   we declare another row action instead 			*/
-		if (version_compare(_PS_VERSION_, '1.6.0.7', '<'))
-		{
-			unset($fields_list['subscribed']);
-			$helper_list->actions = array_merge($helper_list->actions, array('unsubscribe'));
-		}
-
 		// This is needed for displayEnableLink to avoid code duplication
 		$this->_helperlist = $helper_list;
 
