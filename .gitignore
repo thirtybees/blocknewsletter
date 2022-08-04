@@ -1,7 +1,5 @@
-
 /translations/*
 !/translations/index.php
-
 /config*.xml
-
 blocknewsletter-*.zip
+/*.csv
