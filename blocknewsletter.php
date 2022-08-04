@@ -114,7 +114,11 @@ class Blocknewsletter extends Module
 		}
 	}
 
-	public function install()
+    /**
+     * @return bool
+     * @throws PrestaShopException
+     */
+    public function install()
 	{
 		if (!parent::install() || !Configuration::updateValue('PS_NEWSLETTER_RAND', rand().rand()) || !$this->registerHook(array('header', 'footer', 'actionCustomerAccountAdd')))
 			return false;
@@ -135,14 +139,23 @@ class Blocknewsletter extends Module
 		) ENGINE='._MYSQL_ENGINE_.' default CHARSET=utf8');
 	}
 
-	public function uninstall()
+    /**
+     * @return bool
+     * @throws PrestaShopException
+     */
+    public function uninstall()
 	{
 		Db::getInstance()->execute('DROP TABLE '._DB_PREFIX_.'newsletter');
 
 		return parent::uninstall();
 	}
 
-	public function getContent()
+    /**
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function getContent()
 	{
 		if (Tools::isSubmit('submitUpdate'))
 		{
@@ -191,7 +204,12 @@ class Blocknewsletter extends Module
 		return $this->_html;
 	}
 
-	public function renderList()
+    /**
+     * @return false|string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function renderList()
 	{
 		$fields_list = array(
 
@@ -263,7 +281,15 @@ class Blocknewsletter extends Module
 		return $helper_list->generateList($subscribers, $fields_list);
 	}
 
-	public function displayViewCustomerLink($token = null, $id = null, $name = null)
+    /**
+     * @param $token
+     * @param $id
+     * @param $name
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function displayViewCustomerLink($token = null, $id = null, $name = null)
 	{
 		$this->smarty->assign(array(
 			'href' => 'index.php?controller=AdminCustomers&id_customer='.(int)$id.'&updatecustomer&token='.Tools::getAdminTokenLite('AdminCustomers'),
@@ -274,7 +300,19 @@ class Blocknewsletter extends Module
 		return $this->display(__FILE__, 'views/templates/admin/list_action_viewcustomer.tpl');
 	}
 
-	public function displayEnableLink($token, $id, $value, $active, $id_category = null, $id_product = null, $ajax = false)
+    /**
+     * @param $token
+     * @param $id
+     * @param $value
+     * @param $active
+     * @param $id_category
+     * @param $id_product
+     * @param $ajax
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function displayEnableLink($token, $id, $value, $active, $id_category = null, $id_product = null, $ajax = false)
 	{
 		$this->smarty->assign(array(
 			'ajax' => $ajax,
@@ -285,7 +323,15 @@ class Blocknewsletter extends Module
 		return $this->display(__FILE__, 'views/templates/admin/list_action_enable.tpl');
 	}
 
-	public function displayUnsubscribeLink($token = null, $id = null, $name = null)
+    /**
+     * @param $token
+     * @param $id
+     * @param $name
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function displayUnsubscribeLink($token = null, $id = null, $name = null)
 	{
 		$this->smarty->assign(array(
 			'href' => $this->_helperlist->currentIndex.'&subscribedcustomer&'.$this->_helperlist->identifier.'='.$id.'&token='.$token,
@@ -295,16 +341,18 @@ class Blocknewsletter extends Module
 		return $this->display(__FILE__, 'views/templates/admin/list_action_unsubscribe.tpl');
 	}
 
-	/**
-	 * Check if this mail is registered for newsletters
-	 *
-	 * @param string $customer_email
-	 *
-	 * @return int -1 = not a customer and not registered
-	 *                0 = customer not registered
-	 *                1 = registered in block
-	 *                2 = registered in customer
-	 */
+    /**
+     * Check if this mail is registered for newsletters
+     *
+     * @param string $customer_email
+     *
+     * @return int -1 = not a customer and not registered
+     *                0 = customer not registered
+     *                1 = registered in block
+     *                2 = registered in customer
+     *
+     * @throws PrestaShopException
+     */
 	public function isNewsletterRegistered($customer_email)
 	{
 		$sql = 'SELECT `email`
@@ -331,6 +379,8 @@ class Blocknewsletter extends Module
 
 	/**
 	 * Register in block newsletter
+     *
+     * @throws PrestaShopException
 	 */
 	protected function newsletterRegistration()
 	{
@@ -390,7 +440,11 @@ class Blocknewsletter extends Module
 		}
 	}
 
-	public function getSubscribers()
+    /**
+     * @return mixed
+     * @throws PrestaShopException
+     */
+    public function getSubscribers()
 	{
 		$dbquery = new DbQuery();
 		$dbquery->select('c.`id_customer` AS `id`, s.`name` AS `shop_name`, gl.`name` AS `gender`, c.`lastname`, c.`firstname`, c.`email`, c.`newsletter` AS `subscribed`, c.`newsletter_date_add`');
@@ -419,7 +473,13 @@ class Blocknewsletter extends Module
 		return $subscribers;
 	}
 
-	public function paginateSubscribers($subscribers, $page = 1, $pagination = 50)
+    /**
+     * @param $subscribers
+     * @param $page
+     * @param $pagination
+     * @return array|mixed
+     */
+    public function paginateSubscribers($subscribers, $page = 1, $pagination = 50)
 	{
 		if(count($subscribers) > $pagination)
 			$subscribers = array_slice($subscribers, $pagination * ($page - 1), $pagination);
@@ -443,13 +503,15 @@ class Blocknewsletter extends Module
 	}
 
 
-	/**
-	 * Subscribe an email to the newsletter. It will create an entry in the newsletter table
-	 * or update the customer table depending of the register status
-	 *
-	 * @param string $email
-	 * @param int    $register_status
-	 */
+    /**
+     * Subscribe an email to the newsletter. It will create an entry in the newsletter table
+     * or update the customer table depending of the register status
+     *
+     * @param string $email
+     * @param int $register_status
+     * @throws PrestaShopException
+     * @throws PrestaShopException
+     */
 	protected function register($email, $register_status)
 	{
 		if ($register_status == self::GUEST_NOT_REGISTERED)
@@ -461,7 +523,13 @@ class Blocknewsletter extends Module
 		return false;
 	}
 
-	protected function unregister($email, $register_status)
+    /**
+     * @param $email
+     * @param $register_status
+     * @return bool
+     * @throws PrestaShopException
+     */
+    protected function unregister($email, $register_status)
 	{
 		if ($register_status == self::GUEST_REGISTERED)
 			$sql = 'DELETE FROM '._DB_PREFIX_.'newsletter WHERE `email` = \''.pSQL($_POST['email']).'\' AND id_shop = '.$this->context->shop->id;
@@ -474,13 +542,14 @@ class Blocknewsletter extends Module
 		return true;
 	}
 
-	/**
-	 * Subscribe a customer to the newsletter
-	 *
-	 * @param string $email
-	 *
-	 * @return bool
-	 */
+    /**
+     * Subscribe a customer to the newsletter
+     *
+     * @param string $email
+     *
+     * @return bool
+     * @throws PrestaShopException
+     */
 	protected function registerUser($email)
 	{
 		$sql = 'UPDATE '._DB_PREFIX_.'customer
@@ -491,14 +560,15 @@ class Blocknewsletter extends Module
 		return Db::getInstance()->execute($sql);
 	}
 
-	/**
-	 * Subscribe a guest to the newsletter
-	 *
-	 * @param string $email
-	 * @param bool   $active
-	 *
-	 * @return bool
-	 */
+    /**
+     * Subscribe a guest to the newsletter
+     *
+     * @param string $email
+     * @param bool $active
+     *
+     * @return bool
+     * @throws PrestaShopException
+     */
 	protected function registerGuest($email, $active = true)
 	{
 		$sql = 'INSERT INTO '._DB_PREFIX_.'newsletter (id_shop, id_shop_group, email, newsletter_date_add, ip_registration_newsletter, http_referer, active)
@@ -521,7 +591,12 @@ class Blocknewsletter extends Module
 	}
 
 
-	public function activateGuest($email)
+    /**
+     * @param $email
+     * @return bool
+     * @throws PrestaShopException
+     */
+    public function activateGuest($email)
 	{
 		return Db::getInstance()->execute(
 			'UPDATE `'._DB_PREFIX_.'newsletter`
@@ -530,13 +605,14 @@ class Blocknewsletter extends Module
 		);
 	}
 
-	/**
-	 * Returns a guest email by token
-	 *
-	 * @param string $token
-	 *
-	 * @return string email
-	 */
+    /**
+     * Returns a guest email by token
+     *
+     * @param string $token
+     *
+     * @return string email
+     * @throws PrestaShopException
+     */
 	protected function getGuestEmailByToken($token)
 	{
 		$sql = 'SELECT `email`
@@ -547,13 +623,14 @@ class Blocknewsletter extends Module
 		return Db::getInstance()->getValue($sql);
 	}
 
-	/**
-	 * Returns a customer email by token
-	 *
-	 * @param string $token
-	 *
-	 * @return string email
-	 */
+    /**
+     * Returns a customer email by token
+     *
+     * @param string $token
+     *
+     * @return string email
+     * @throws PrestaShopException
+     */
 	protected function getUserEmailByToken($token)
 	{
 		$sql = 'SELECT `email`
@@ -564,12 +641,14 @@ class Blocknewsletter extends Module
 		return Db::getInstance()->getValue($sql);
 	}
 
-	/**
-	 * Return a token associated to an user
-	 *
-	 * @param string $email
-	 * @param string $register_status
-	 */
+    /**
+     * Return a token associated to an user
+     *
+     * @param string $email
+     * @param string $register_status
+     * @return false|mixed
+     * @throws PrestaShopException
+     */
 	protected function getToken($email, $register_status)
 	{
 		if (in_array($register_status, array(self::GUEST_NOT_REGISTERED, self::GUEST_REGISTERED)))
@@ -590,13 +669,14 @@ class Blocknewsletter extends Module
 		return Db::getInstance()->getValue($sql);
 	}
 
-	/**
-	 * Ends the registration process to the newsletter
-	 *
-	 * @param string $token
-	 *
-	 * @return string
-	 */
+    /**
+     * Ends the registration process to the newsletter
+     *
+     * @param string $token
+     *
+     * @return string
+     * @throws PrestaShopException
+     */
 	public function confirmEmail($token)
 	{
 		$activated = false;
@@ -618,14 +698,14 @@ class Blocknewsletter extends Module
 		return $this->l('Thank you for subscribing to our newsletter.');
 	}
 
-	/**
-	 * Send the confirmation mails to the given $email address if needed.
-	 *
-	 * @param string $email Email where to send the confirmation
-	 *
-	 * @note the email has been verified and might not yet been registered. Called by AuthController::processCustomerNewsletter
-	 *
-	 */
+    /**
+     * Send the confirmation mails to the given $email address if needed.
+     *
+     * @param string $email Email where to send the confirmation
+     *
+     * @throws PrestaShopException
+     * @note the email has been verified and might not yet been registered. Called by AuthController::processCustomerNewsletter
+     */
 	public function confirmSubscription($email)
 	{
 		if ($email)
@@ -638,39 +718,42 @@ class Blocknewsletter extends Module
 		}
 	}
 
-	/**
-	 * Send an email containing a voucher code
-	 *
-	 * @param $email
-	 * @param $code
-	 *
-	 * @return bool|int
-	 */
+    /**
+     * Send an email containing a voucher code
+     *
+     * @param $email
+     * @param $code
+     *
+     * @return bool|int
+     * @throws PrestaShopException
+     */
 	protected function sendVoucher($email, $code)
 	{
 		return Mail::Send($this->context->language->id, 'newsletter_voucher', Mail::l('Newsletter voucher', $this->context->language->id), array('{discount}' => $code), $email, null, null, null, null, null, dirname(__FILE__).'/mails/', false, $this->context->shop->id);
 	}
 
-	/**
-	 * Send a confirmation email
-	 *
-	 * @param string $email
-	 *
-	 * @return bool
-	 */
+    /**
+     * Send a confirmation email
+     *
+     * @param string $email
+     *
+     * @return bool
+     * @throws PrestaShopException
+     */
 	protected function sendConfirmationEmail($email)
 	{
 		return Mail::Send($this->context->language->id, 'newsletter_conf', Mail::l('Newsletter confirmation', $this->context->language->id), array(), pSQL($email), null, null, null, null, null, dirname(__FILE__).'/mails/', false, $this->context->shop->id);
 	}
 
-	/**
-	 * Send a verification email
-	 *
-	 * @param string $email
-	 * @param string $token
-	 *
-	 * @return bool
-	 */
+    /**
+     * Send a verification email
+     *
+     * @param string $email
+     * @param string $token
+     *
+     * @return bool
+     * @throws PrestaShopException
+     */
 	protected function sendVerificationEmail($email, $token)
 	{
 		$verif_url = Context::getContext()->link->getModuleLink(
@@ -682,12 +765,24 @@ class Blocknewsletter extends Module
 		return Mail::Send($this->context->language->id, 'newsletter_verif', Mail::l('Email verification', $this->context->language->id), array('{verif_url}' => $verif_url), $email, null, null, null, null, null, dirname(__FILE__).'/mails/', false, $this->context->shop->id);
 	}
 
-	public function hookDisplayRightColumn($params)
+    /**
+     * @param $params
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayRightColumn($params)
 	{
 		return $this->hookDisplayLeftColumn($params);
 	}
 
-	protected function _prepareHook($params)
+    /**
+     * @param $params
+     * @return void
+     *
+     * @throws PrestaShopException
+     */
+    protected function _prepareHook($params)
 	{
 		if (Tools::isSubmit('submitNewsletter'))
 		{
@@ -718,7 +813,13 @@ class Blocknewsletter extends Module
 		$this->smarty->assign('this_path', $this->_path);
 	}
 
-	public function hookDisplayLeftColumn($params)
+    /**
+     * @param $params
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayLeftColumn($params)
 	{
 		if (!isset($this->prepared) || !$this->prepared)
 			$this->_prepareHook($params);
@@ -726,29 +827,46 @@ class Blocknewsletter extends Module
 		return $this->display(__FILE__, 'blocknewsletter.tpl');
 	}
 
-	public function hookFooter($params)
+    /**
+     * @param $params
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookFooter($params)
 	{
 		return $this->hookDisplayLeftColumn($params);
 	}
 
-	public function hookdisplayMaintenance($params)
+    /**
+     * @param $params
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookdisplayMaintenance($params)
 	{
 		return $this->hookDisplayLeftColumn($params);
 	}
 
-	public function hookDisplayHeader($params)
+    /**
+     * @param $params
+     * @return void
+     */
+    public function hookDisplayHeader($params)
 	{
 		$this->context->controller->addCSS($this->_path.'blocknewsletter.css', 'all');
 		$this->context->controller->addJS($this->_path.'blocknewsletter.js');
 	}
 
-	/**
-	 * Deletes duplicates email in newsletter table
-	 *
-	 * @param $params
-	 *
-	 * @return bool
-	 */
+    /**
+     * Deletes duplicates email in newsletter table
+     *
+     * @param $params
+     *
+     * @return bool
+     * @throws PrestaShopException
+     */
 	public function hookActionCustomerAccountAdd($params)
 	{
 		//if e-mail of the created user address has already been added to the newsletter through the blocknewsletter module,
@@ -761,7 +879,13 @@ class Blocknewsletter extends Module
 		return true;
 	}
 
-	public function renderForm()
+    /**
+     * @return string
+     *
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function renderForm()
 	{
 		$fields_form = array(
 			'form' => array(
@@ -837,7 +961,13 @@ class Blocknewsletter extends Module
 		return $helper->generateForm(array($fields_form));
 	}
 
-	public function renderExportForm()
+    /**
+     * @return string
+     *
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function renderExportForm()
 	{
 		// Getting data...
 		$countries = Country::getCountries($this->context->language->id);
@@ -937,7 +1067,13 @@ class Blocknewsletter extends Module
 		return $helper->generateForm(array($fields_form));
 	}
 
-	public function renderSearchForm()
+    /**
+     * @return string
+     *
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function renderSearchForm()
 	{
 				$fields_form = array(
 			'form' => array(
@@ -976,7 +1112,11 @@ class Blocknewsletter extends Module
 		return $helper->generateForm(array($fields_form));
 	}
 
-	public function getConfigFieldsValues()
+    /**
+     * @return array
+     * @throws PrestaShopException
+     */
+    public function getConfigFieldsValues()
 	{
 		return array(
 			'NW_VERIFICATION_EMAIL' => Tools::getValue('NW_VERIFICATION_EMAIL', Configuration::get('NW_VERIFICATION_EMAIL')),
@@ -989,7 +1129,11 @@ class Blocknewsletter extends Module
 		);
 	}
 
-	public function export_csv()
+    /**
+     * @return void
+     * @throws PrestaShopException
+     */
+    public function export_csv()
 	{
 		if (!isset($this->context))
 			$this->context = Context::getContext();
@@ -1026,7 +1170,11 @@ class Blocknewsletter extends Module
 			$this->_html .= $this->displayError($this->l('No result found!'));
 	}
 
-	private function getCustomers()
+    /**
+     * @return array
+     * @throws PrestaShopException
+     */
+    private function getCustomers()
 	{
 		$id_shop = false;
 
@@ -1083,7 +1231,12 @@ class Blocknewsletter extends Module
 		return $subscribers;
 	}
 
-	private function myFputCsv($fd, $array)
+    /**
+     * @param $fd
+     * @param $array
+     * @return void
+     */
+    private function myFputCsv($fd, $array)
 	{
 		$line = implode(';', $array);
 		$line .= "\n";
