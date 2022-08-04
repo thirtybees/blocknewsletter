@@ -179,7 +179,7 @@ class Blocknewsletter extends Module
 			Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', false).'&configure='.$this->name.'&conf=4&token='.Tools::getAdminTokenLite('AdminModules'));
 
 		}
-		elseif (Tools::isSubmit('submitExport') && $action = Tools::getValue('action'))
+		elseif (Tools::isSubmit('submitExport') && Tools::getValue('action'))
 			$this->export_csv();
 		elseif (Tools::isSubmit('searchEmail'))
 			$this->_searched_email = Tools::getValue('searched_email');
@@ -369,64 +369,88 @@ class Blocknewsletter extends Module
 	/**
 	 * Register in block newsletter
      *
+     * @return boolean
      * @throws PrestaShopException
 	 */
 	protected function newsletterRegistration()
 	{
-		if (empty($_POST['email']) || !Validate::isEmail($_POST['email']))
-			return $this->error = $this->l('Invalid email address.');
+		if (empty($_POST['email']) || !Validate::isEmail($_POST['email'])) {
+            $this->error = $this->l('Invalid email address.');
+            return false;
+        }
 
 		/* Unsubscription */
-		else if ($_POST['action'] == '1')
+		if ($_POST['action'] == '1')
 		{
 			$register_status = $this->isNewsletterRegistered($_POST['email']);
 
-			if ($register_status < 1)
-				return $this->error = $this->l('This email address is not registered.');
+			if ($register_status < 1) {
+                $this->error = $this->l('This email address is not registered.');
+                return false;
 
-			if (!$this->unregister($_POST['email'], $register_status))
-				return $this->error = $this->l('An error occurred while attempting to unsubscribe.');
+            }
 
-			return $this->valid = $this->l('Unsubscription successful.');
+			if (!$this->unregister($_POST['email'], $register_status)) {
+                $this->error = $this->l('An error occurred while attempting to unsubscribe.');
+                return false;
+            }
+
+			$this->valid = $this->l('Unsubscription successful.');
+            return true;
 		}
+
 		/* Subscription */
-		else if ($_POST['action'] == '0')
+		if ($_POST['action'] == '0')
 		{
 			$register_status = $this->isNewsletterRegistered($_POST['email']);
-			if ($register_status > 0)
-				return $this->error = $this->l('This email address is already registered.');
+			if ($register_status > 0) {
+                $this->error = $this->l('This email address is already registered.');
+                return false;
+            }
 
 			$email = pSQL($_POST['email']);
-			if (!$this->isRegistered($register_status))
+			if (! $this->isRegistered($register_status))
 			{
 				if (Configuration::get('NW_VERIFICATION_EMAIL'))
 				{
 					// create an unactive entry in the newsletter database
-					if ($register_status == self::GUEST_NOT_REGISTERED)
-						$this->registerGuest($email, false);
+					if ($register_status == self::GUEST_NOT_REGISTERED) {
+                        $this->registerGuest($email, false);
+                    }
 
-					if (!$token = $this->getToken($email, $register_status))
-						return $this->error = $this->l('An error occurred during the subscription process.');
+					if (!$token = $this->getToken($email, $register_status)) {
+                        $this->error = $this->l('An error occurred during the subscription process.');
+                        return false;
+                    }
 
 					$this->sendVerificationEmail($email, $token);
 
-					return $this->valid = $this->l('A verification email has been sent. Please check your inbox.');
+					$this->valid = $this->l('A verification email has been sent. Please check your inbox.');
+                    return true;
 				}
 				else
 				{
-					if ($this->register($email, $register_status))
-						$this->valid = $this->l('You have successfully subscribed to this newsletter.');
-					else
-						return $this->error = $this->l('An error occurred during the subscription process.');
+					if ($this->register($email, $register_status)) {
+                        $this->valid = $this->l('You have successfully subscribed to this newsletter.');
 
-					if ($code = Configuration::get('NW_VOUCHER_CODE'))
-						$this->sendVoucher($email, $code);
+                        if ($code = Configuration::get('NW_VOUCHER_CODE')) {
+                            $this->sendVoucher($email, $code);
+                        }
 
-					if (Configuration::get('NW_CONFIRMATION_EMAIL'))
-						$this->sendConfirmationEmail($email);
+                        if (Configuration::get('NW_CONFIRMATION_EMAIL')) {
+                            $this->sendConfirmationEmail($email);
+                        }
+
+                        return true;
+                    } else {
+                        $this->error = $this->l('An error occurred during the subscription process.');
+                        return false;
+                    }
 				}
-			}
+            }
 		}
+
+        return false;
 	}
 
     /**
@@ -631,11 +655,11 @@ class Blocknewsletter extends Module
 	}
 
     /**
-     * Return a token associated to an user
+     * Return a token associated with user
      *
      * @param string $email
      * @param string $register_status
-     * @return false|mixed
+     * @return false | string
      * @throws PrestaShopException
      */
 	protected function getToken($email, $register_status)
@@ -646,6 +670,7 @@ class Blocknewsletter extends Module
 					FROM `'._DB_PREFIX_.'newsletter`
 					WHERE `active` = 0
 					AND `email` = \''.pSQL($email).'\'';
+            return Db::getInstance()->getValue($sql);
 		}
 		else if ($register_status == self::CUSTOMER_NOT_REGISTERED)
 		{
@@ -653,9 +678,9 @@ class Blocknewsletter extends Module
 					FROM `'._DB_PREFIX_.'customer`
 					WHERE `newsletter` = 0
 					AND `email` = \''.pSQL($email).'\'';
+            return Db::getInstance()->getValue($sql);
 		}
-
-		return Db::getInstance()->getValue($sql);
+        return false;
 	}
 
     /**
@@ -1133,7 +1158,7 @@ class Blocknewsletter extends Module
 		{
 			if (!$nb = count($result))
 				$this->_html .= $this->displayError($this->l('No customers found with these filters!'));
-			elseif ($fd = @fopen(dirname(__FILE__).'/'.strval(preg_replace('#\.{2,}#', '.', Tools::getValue('action'))).'_'.$this->file, 'w'))
+			elseif ($fd = @fopen(dirname(__FILE__).'/'. preg_replace('#\.{2,}#', '.', Tools::getValue('action')) .'_'.$this->file, 'w'))
 			{
 				$header = array('id', 'shop_name', 'gender', 'lastname', 'firstname', 'email', 'subscribed', 'subscribed_on');
 				$array_to_export = array_merge(array($header), $result);
@@ -1153,7 +1178,7 @@ class Blocknewsletter extends Module
 				</ol>');
 			}
 			else
-				$this->_html .= $this->displayError($this->l('Error: Write access limited').' '.dirname(__FILE__).'/'.strval(Tools::getValue('action')).'_'.$this->file.' !');
+				$this->_html .= $this->displayError($this->l('Error: Write access limited').' '.dirname(__FILE__).'/'. Tools::getValue('action') .'_'.$this->file.' !');
 		}
 		else
 			$this->_html .= $this->displayError($this->l('No result found!'));
