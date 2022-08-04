@@ -33,7 +33,65 @@ class Blocknewsletter extends Module
 	const GUEST_REGISTERED = 1;
 	const CUSTOMER_REGISTERED = 2;
 
-	public function __construct()
+    /**
+     * @var bool
+     */
+    private $error;
+
+    /**
+     * @var false
+     */
+    private $valid;
+
+    /**
+     * @var string[][]
+     */
+    private $_files;
+
+    /**
+     * @var null
+     */
+    private $_searched_email;
+
+    /**
+     * @var string
+     */
+    private $_html;
+
+    /**
+     * @var string
+     */
+    private $file;
+
+    /**
+     * @var array
+     */
+    private $post_valid;
+
+    /**
+     * @var array[]
+     */
+    private $fields_export;
+
+    /**
+     * @var HelperList
+     */
+    private $_helperlist;
+
+    /**
+     * @var bool
+     */
+    private $prepared;
+
+    /**
+     * @var array
+     */
+    private $post_errors;
+
+    /**
+     * @throws PrestaShopException
+     */
+    public function __construct()
 	{
 		$this->name = 'blocknewsletter';
 		$this->tab = 'front_office_features';
