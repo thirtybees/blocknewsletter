@@ -728,7 +728,7 @@ class Blocknewsletter extends Module
      */
     protected function _prepareHook($params)
     {
-        if (Tools::isSubmit('submitNewsletter')) {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST' && Tools::isSubmit('submitNewsletter')) {
             $this->newsletterRegistration();
             if ($this->error) {
                 $this->smarty->assign(

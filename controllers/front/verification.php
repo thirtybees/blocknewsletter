@@ -38,9 +38,10 @@ class BlocknewsletterVerificationModuleFrontController extends ModuleFrontContro
 		$this->message = $this->module->confirmEmail(Tools::getValue('token'));
 	}
 
-	/**
-	 * @see FrontController::initContent()
-	 */
+    /**
+     * @throws PrestaShopException
+     * @see FrontController::initContent()
+     */
 	public function initContent()
 	{
 		parent::initContent();
