@@ -33,6 +33,9 @@ class Blocknewsletter extends Module
     const GUEST_REGISTERED = 1;
     const CUSTOMER_REGISTERED = 2;
 
+    const ACTION_SUBSCRIBE = '0';
+    const ACTION_UNSUBSCRIBE = '1';
+
     /**
      * @var bool
      */
@@ -365,77 +368,22 @@ class Blocknewsletter extends Module
      */
     protected function newsletterRegistration()
     {
-        if (empty($_POST['email']) || !Validate::isEmail($_POST['email'])) {
+        $email = Tools::getValue('email');
+        $action = Tools::getValue('action');
+
+        if (empty($email) || !Validate::isEmail($email)) {
             $this->error = $this->l('Invalid email address.');
             return false;
         }
 
-        /* Unsubscription */
-        if ($_POST['action'] == '1') {
-            $register_status = $this->isNewsletterRegistered($_POST['email']);
-
-            if ($register_status < 1) {
-                $this->error = $this->l('This email address is not registered.');
+        switch ($action) {
+            case static::ACTION_SUBSCRIBE:
+                return $this->subscribe($email);
+            case static::ACTION_UNSUBSCRIBE:
+                return $this->unsubscribe($email);
+            default:
                 return false;
-
-            }
-
-            if (!$this->unregister($_POST['email'], $register_status)) {
-                $this->error = $this->l('An error occurred while attempting to unsubscribe.');
-                return false;
-            }
-
-            $this->valid = $this->l('Unsubscription successful.');
-            return true;
         }
-
-        /* Subscription */
-        if ($_POST['action'] == '0') {
-            $register_status = $this->isNewsletterRegistered($_POST['email']);
-            if ($register_status > 0) {
-                $this->error = $this->l('This email address is already registered.');
-                return false;
-            }
-
-            $email = pSQL($_POST['email']);
-            if (!$this->isRegistered($register_status)) {
-                if (Configuration::get('NW_VERIFICATION_EMAIL')) {
-                    // create an unactive entry in the newsletter database
-                    if ($register_status == self::GUEST_NOT_REGISTERED) {
-                        $this->registerGuest($email, false);
-                    }
-
-                    if (!$token = $this->getToken($email, $register_status)) {
-                        $this->error = $this->l('An error occurred during the subscription process.');
-                        return false;
-                    }
-
-                    $this->sendVerificationEmail($email, $token);
-
-                    $this->valid = $this->l('A verification email has been sent. Please check your inbox.');
-                    return true;
-                } else {
-                    if ($this->register($email, $register_status)) {
-                        $this->valid = $this->l('You have successfully subscribed to this newsletter.');
-
-                        if ($code = Configuration::get('NW_VOUCHER_CODE')) {
-                            $this->sendVoucher($email, $code);
-                        }
-
-                        if (Configuration::get('NW_CONFIRMATION_EMAIL')) {
-                            $this->sendConfirmationEmail($email);
-                        }
-
-                        return true;
-                    } else {
-                        $this->error = $this->l('An error occurred during the subscription process.');
-                        return false;
-                    }
-                }
-            }
-        }
-
-        return false;
     }
 
     /**
@@ -523,16 +471,17 @@ class Blocknewsletter extends Module
 
     /**
      * @param $email
-     * @param $register_status
+     * @param $registerStatus
      * @return bool
      * @throws PrestaShopException
      */
-    protected function unregister($email, $register_status)
+    protected function unregister($email, $registerStatus)
     {
-        if ($register_status == self::GUEST_REGISTERED)
-            $sql = 'DELETE FROM ' . _DB_PREFIX_ . 'newsletter WHERE `email` = \'' . pSQL($_POST['email']) . '\' AND id_shop = ' . $this->context->shop->id;
-        else if ($register_status == self::CUSTOMER_REGISTERED)
-            $sql = 'UPDATE ' . _DB_PREFIX_ . 'customer SET `newsletter` = 0 WHERE `email` = \'' . pSQL($_POST['email']) . '\' AND id_shop = ' . $this->context->shop->id;
+        if ($registerStatus == self::GUEST_REGISTERED) {
+            $sql = 'DELETE FROM ' . _DB_PREFIX_ . 'newsletter WHERE `email` = \'' . pSQL($email) . '\' AND id_shop = ' . $this->context->shop->id;
+        } else if ($registerStatus == self::CUSTOMER_REGISTERED) {
+            $sql = 'UPDATE ' . _DB_PREFIX_ . 'customer SET `newsletter` = 0 WHERE `email` = \'' . pSQL($email) . '\' AND id_shop = ' . $this->context->shop->id;
+        }
 
         if (!isset($sql) || !Db::getInstance()->execute($sql))
             return false;
@@ -786,9 +735,8 @@ class Blocknewsletter extends Module
                     array(
                         'color' => 'red',
                         'msg' => $this->error,
-                        'nw_value' => isset($_POST['email']) ? pSQL($_POST['email']) : false,
                         'nw_error' => true,
-                        'action' => $_POST['action']
+                        'action' => Tools::getValue('action')
                     )
                 );
             } else if ($this->valid) {
@@ -1226,5 +1174,81 @@ class Blocknewsletter extends Module
         $line = implode(';', $array);
         $line .= "\n";
         fwrite($fd, $line, 4096);
+    }
+
+    /**
+     * @param $email
+     * @return bool
+     * @throws PrestaShopException
+     */
+    protected function unsubscribe($email)
+    {
+        $register_status = $this->isNewsletterRegistered($email);
+
+        if ($register_status < 1) {
+            $this->error = $this->l('This email address is not registered.');
+            return false;
+
+        }
+
+        if (!$this->unregister($email, $register_status)) {
+            $this->error = $this->l('An error occurred while attempting to unsubscribe.');
+            return false;
+        }
+
+        $this->valid = $this->l('Unsubscription successful.');
+        return true;
+    }
+
+    /**
+     * @param $email
+     * @return bool
+     * @throws PrestaShopException
+     */
+    protected function subscribe($email)
+    {
+        $registerStatus = $this->isNewsletterRegistered($email);
+        if ($registerStatus > 0) {
+            $this->error = $this->l('This email address is already registered.');
+            return false;
+        }
+
+        if (!$this->isRegistered($registerStatus)) {
+            if (Configuration::get('NW_VERIFICATION_EMAIL')) {
+                // create an inactive entry in the newsletter database
+                if ($registerStatus == self::GUEST_NOT_REGISTERED) {
+                    $this->registerGuest($email, false);
+                }
+
+                if (!$token = $this->getToken($email, $registerStatus)) {
+                    $this->error = $this->l('An error occurred during the subscription process.');
+                    return false;
+                }
+
+                $this->sendVerificationEmail($email, $token);
+
+                $this->valid = $this->l('A verification email has been sent. Please check your inbox.');
+                return true;
+            } else {
+                if ($this->register($email, $registerStatus)) {
+                    $this->valid = $this->l('You have successfully subscribed to this newsletter.');
+
+                    if ($code = Configuration::get('NW_VOUCHER_CODE')) {
+                        $this->sendVoucher($email, $code);
+                    }
+
+                    if (Configuration::get('NW_CONFIRMATION_EMAIL')) {
+                        $this->sendConfirmationEmail($email);
+                    }
+
+                    return true;
+                } else {
+                    $this->error = $this->l('An error occurred during the subscription process.');
+                    return false;
+                }
+            }
+        }
+
+        return false;
     }
 }
