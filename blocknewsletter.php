@@ -44,11 +44,6 @@ class Blocknewsletter extends Module
     private $valid;
 
     /**
-     * @var string[][]
-     */
-    private $_files;
-
-    /**
      * @var null
      */
     private $_searched_email;
@@ -64,16 +59,6 @@ class Blocknewsletter extends Module
     private $file;
 
     /**
-     * @var array
-     */
-    private $post_valid;
-
-    /**
-     * @var array[]
-     */
-    private $fields_export;
-
-    /**
      * @var HelperList
      */
     private $_helperlist;
@@ -82,11 +67,6 @@ class Blocknewsletter extends Module
      * @var bool
      */
     private $prepared;
-
-    /**
-     * @var array
-     */
-    private $post_errors;
 
     /**
      * @throws PrestaShopException
@@ -113,13 +93,6 @@ class Blocknewsletter extends Module
 		$this->author = 'thirty bees';
 		$this->error = false;
 		$this->valid = false;
-		$this->_files = array(
-			'name' => array('newsletter_conf', 'newsletter_voucher'),
-			'ext' => array(
-				0 => 'html',
-				1 => 'txt'
-			)
-		);
 
 		$this->_searched_email = null;
 
@@ -127,48 +100,6 @@ class Blocknewsletter extends Module
 		if ($this->id)
 		{
 			$this->file = 'export_'.Configuration::get('PS_NEWSLETTER_RAND').'.csv';
-			$this->post_valid = array();
-
-			// Getting data...
-			$countries = Country::getCountries($this->context->language->id);
-
-			// ...formatting array
-			$countries_list = array($this->l('All countries'));
-			foreach ($countries as $country)
-				$countries_list[$country['id_country']] = $country['name'];
-
-			// And filling fields to show !
-			$this->fields_export = array(
-				'COUNTRY' => array(
-					'title' => $this->l('Customers\' country'),
-					'desc' => $this->l('Filter customers\' country.'),
-					'type' => 'select',
-					'value' => $countries_list,
-					'value_default' => 0
-				),
-				'SUSCRIBERS' => array(
-					'title' => $this->l('Newsletter subscribers'),
-					'desc' => $this->l('Filter newsletter subscribers.'),
-					'type' => 'select',
-					'value' => array(
-						0 => $this->l('All customers'),
-						2 => $this->l('Subscribers'),
-						1 => $this->l('Non-subscribers')
-					),
-					'value_default' => 2
-				),
-				'OPTIN' => array(
-					'title' => $this->l('Opted-in subscribers'),
-					'desc' => $this->l('Filter opted-in subscribers.'),
-					'type' => 'select',
-					'value' => array(
-						0 => $this->l('All customers'),
-						2 => $this->l('Subscribers'),
-						1 => $this->l('Non-subscribers')
-					),
-					'value_default' => 0
-				),
-			);
 		}
 	}
 
@@ -1298,7 +1229,6 @@ class Blocknewsletter extends Module
 	{
 		$line = implode(';', $array);
 		$line .= "\n";
-		if (!fwrite($fd, $line, 4096))
-			$this->post_errors[] = $this->l('Error: Write access limited').' '.dirname(__FILE__).'/'.$this->file.' !';
+		fwrite($fd, $line, 4096);
 	}
 }
