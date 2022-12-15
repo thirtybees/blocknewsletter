@@ -28,25 +28,34 @@
  */
 class BlocknewsletterVerificationModuleFrontController extends ModuleFrontController
 {
-	private $message = '';
+    /**
+     * @var Blocknewsletter
+     */
+    public $module;
 
-	/**
-	 * @see FrontController::postProcess()
-	 */
-	public function postProcess()
-	{
-		$this->message = $this->module->confirmEmail(Tools::getValue('token'));
-	}
+    /**
+     * @var string
+     */
+    private $message = '';
+
+    /**
+     * @throws PrestaShopException
+     * @see FrontController::postProcess()
+     */
+    public function postProcess()
+    {
+        $this->message = $this->module->confirmEmail(Tools::getValue('token'));
+    }
 
     /**
      * @throws PrestaShopException
      * @see FrontController::initContent()
      */
-	public function initContent()
-	{
-		parent::initContent();
+    public function initContent()
+    {
+        parent::initContent();
 
-		$this->context->smarty->assign('message', $this->message);
-		$this->setTemplate('verification_execution.tpl');
-	}
+        $this->context->smarty->assign('message', $this->message);
+        $this->setTemplate('verification_execution.tpl');
+    }
 }
