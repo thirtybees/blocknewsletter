@@ -36,7 +36,7 @@ class BlocknewsletterVerificationModuleFrontController extends ModuleFrontContro
     /**
      * @var string
      */
-    private $message = '';
+    protected $message = '';
 
     /**
      * @throws PrestaShopException

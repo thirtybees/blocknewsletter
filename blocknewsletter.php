@@ -40,37 +40,37 @@ class Blocknewsletter extends Module
     /**
      * @var bool
      */
-    private $error;
+    protected $error;
 
     /**
      * @var string|false
      */
-    private $valid;
+    protected $valid;
 
     /**
      * @var string|null
      */
-    private $_searched_email;
+    protected $_searched_email;
 
     /**
      * @var string
      */
-    private $_html;
+    protected $_html;
 
     /**
      * @var string
      */
-    private $file;
+    protected $file;
 
     /**
      * @var HelperList
      */
-    private $_helperlist;
+    protected $_helperlist;
 
     /**
      * @var bool
      */
-    private $prepared;
+    protected $prepared;
 
     /**
      * @throws PrestaShopException
