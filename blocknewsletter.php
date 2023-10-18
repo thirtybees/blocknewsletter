@@ -37,6 +37,8 @@ class Blocknewsletter extends Module
     const ACTION_SUBSCRIBE = '0';
     const ACTION_UNSUBSCRIBE = '1';
 
+    const SETTINGS_KEY_CAPTCHA = 'PS_NEWSLETTER_CAPTCHA';
+
     /**
      * @var bool
      */
@@ -68,11 +70,6 @@ class Blocknewsletter extends Module
     protected $_helperlist;
 
     /**
-     * @var bool
-     */
-    protected $prepared;
-
-    /**
      * @throws PrestaShopException
      */
     public function __construct()
@@ -81,7 +78,7 @@ class Blocknewsletter extends Module
         $this->tab = 'front_office_features';
         $this->need_instance = 0;
 
-        $this->controllers = array('verification');
+        $this->controllers = ['verification'];
 
         $this->bootstrap = true;
         parent::__construct();
@@ -91,7 +88,7 @@ class Blocknewsletter extends Module
         $this->confirmUninstall = $this->l('Are you sure that you want to delete all of your contacts?');
         $this->tb_versions_compliancy = '> 1.0.0';
         $this->tb_min_version = '1.0.0';
-        $this->ps_versions_compliancy = array('min' => '1.6', 'max' => '1.6.99.99');
+        $this->ps_versions_compliancy = ['min' => '1.6', 'max' => '1.6.99.99'];
 
         $this->version = '3.1.1';
         $this->author = 'thirty bees';
@@ -112,7 +109,7 @@ class Blocknewsletter extends Module
      */
     public function install()
     {
-        if (!parent::install() || !Configuration::updateValue('PS_NEWSLETTER_RAND', rand() . rand()) || !$this->registerHook(array('header', 'footer', 'actionCustomerAccountAdd'))) {
+        if (!parent::install() || !Configuration::updateValue('PS_NEWSLETTER_RAND', rand() . rand()) || !$this->registerHook(['header', 'footer', 'actionCustomerAccountAdd'])) {
             return false;
         }
 
@@ -153,6 +150,7 @@ class Blocknewsletter extends Module
         if (Tools::isSubmit('submitUpdate')) {
             Configuration::updateValue('NW_CONFIRMATION_EMAIL', (bool)Tools::getValue('NW_CONFIRMATION_EMAIL'));
             Configuration::updateValue('NW_VERIFICATION_EMAIL', (bool)Tools::getValue('NW_VERIFICATION_EMAIL'));
+            Configuration::updateValue(static::SETTINGS_KEY_CAPTCHA, Tools::getValue(static::SETTINGS_KEY_CAPTCHA, 'none'));
 
             $voucher = Tools::getValue('NW_VOUCHER_CODE');
             if ($voucher && !Validate::isDiscountName($voucher)) {
@@ -197,44 +195,44 @@ class Blocknewsletter extends Module
      */
     public function renderList()
     {
-        $fields_list = array(
+        $fields_list = [
 
-            'id' => array(
+            'id' => [
                 'title' => $this->l('ID'),
                 'search' => false,
-            ),
-            'shop_name' => array(
+            ],
+            'shop_name' => [
                 'title' => $this->l('Shop'),
                 'search' => false,
-            ),
-            'gender' => array(
+            ],
+            'gender' => [
                 'title' => $this->l('Gender'),
                 'search' => false,
-            ),
-            'lastname' => array(
+            ],
+            'lastname' => [
                 'title' => $this->l('Lastname'),
                 'search' => false,
-            ),
-            'firstname' => array(
+            ],
+            'firstname' => [
                 'title' => $this->l('Firstname'),
                 'search' => false,
-            ),
-            'email' => array(
+            ],
+            'email' => [
                 'title' => $this->l('Email'),
                 'search' => false,
-            ),
-            'subscribed' => array(
+            ],
+            'subscribed' => [
                 'title' => $this->l('Subscribed'),
                 'type' => 'bool',
                 'active' => 'subscribed',
                 'search' => false,
-            ),
-            'newsletter_date_add' => array(
+            ],
+            'newsletter_date_add' => [
                 'title' => $this->l('Subscribed on'),
                 'type' => 'date',
                 'search' => false,
-            )
-        );
+            ]
+        ];
 
         if (!Configuration::get('PS_MULTISHOP_FEATURE_ACTIVE')) {
             unset($fields_list['shop_name']);
@@ -251,7 +249,7 @@ class Blocknewsletter extends Module
         $helper_list->table = 'merged';
         $helper_list->currentIndex = $this->context->link->getAdminLink('AdminModules', false) . '&configure=' . $this->name;
         $helper_list->token = Tools::getAdminTokenLite('AdminModules');
-        $helper_list->actions = array('viewCustomer');
+        $helper_list->actions = ['viewCustomer'];
 
         // This is needed for displayEnableLink to avoid code duplication
         $this->_helperlist = $helper_list;
@@ -279,11 +277,11 @@ class Blocknewsletter extends Module
      */
     public function displayViewCustomerLink($token = null, $id = null, $name = null)
     {
-        $this->smarty->assign(array(
+        $this->smarty->assign([
             'href' => 'index.php?controller=AdminCustomers&id_customer=' . (int)$id . '&updatecustomer&token=' . Tools::getAdminTokenLite('AdminCustomers'),
             'action' => $this->l('View'),
             'disable' => !((int)$id > 0),
-        ));
+        ]);
 
         return $this->display(__FILE__, 'views/templates/admin/list_action_viewcustomer.tpl');
     }
@@ -303,11 +301,11 @@ class Blocknewsletter extends Module
      */
     public function displayEnableLink($token, $id, $value, $active, $id_category = null, $id_product = null, $ajax = false)
     {
-        $this->smarty->assign(array(
+        $this->smarty->assign([
             'ajax' => $ajax,
             'enabled' => (bool)$value,
             'url_enable' => $this->_helperlist->currentIndex . '&' . $this->_helperlist->identifier . '=' . $id . '&' . $active . $this->_helperlist->table . ($ajax ? '&action=' . $active . $this->_helperlist->table . '&ajax=' . (int)$ajax : '') . ((int)$id_category && (int)$id_product ? '&id_category=' . (int)$id_category : '') . '&token=' . $token
-        ));
+        ]);
 
         return $this->display(__FILE__, 'views/templates/admin/list_action_enable.tpl');
     }
@@ -323,10 +321,10 @@ class Blocknewsletter extends Module
      */
     public function displayUnsubscribeLink($token = null, $id = null, $name = null)
     {
-        $this->smarty->assign(array(
+        $this->smarty->assign([
             'href' => $this->_helperlist->currentIndex . '&subscribedcustomer&' . $this->_helperlist->identifier . '=' . $id . '&token=' . $token,
             'action' => $this->l('Unsubscribe'),
-        ));
+        ]);
 
         return $this->display(__FILE__, 'views/templates/admin/list_action_unsubscribe.tpl');
     }
@@ -378,6 +376,10 @@ class Blocknewsletter extends Module
      */
     protected function newsletterRegistration()
     {
+        if ($captchaError = $this->validateCaptcha()) {
+            $this->error = $captchaError;
+            return false;
+        }
         $email = Tools::getValue('email');
         $action = Tools::getValue('action');
 
@@ -458,7 +460,7 @@ class Blocknewsletter extends Module
     {
         return in_array(
             $register_status,
-            array(self::GUEST_REGISTERED, self::CUSTOMER_REGISTERED)
+            [self::GUEST_REGISTERED, self::CUSTOMER_REGISTERED]
         );
     }
 
@@ -621,7 +623,7 @@ class Blocknewsletter extends Module
      */
     protected function getToken($email, $register_status)
     {
-        if (in_array($register_status, array(self::GUEST_NOT_REGISTERED, self::GUEST_REGISTERED))) {
+        if (in_array($register_status, [self::GUEST_NOT_REGISTERED, self::GUEST_REGISTERED])) {
             $sql = 'SELECT MD5(CONCAT( `email` , `newsletter_date_add`, \'' . Configuration::get('NW_SALT') . '\')) as token
 					FROM `' . _DB_PREFIX_ . 'newsletter`
 					WHERE `active` = 0
@@ -701,12 +703,12 @@ class Blocknewsletter extends Module
      * @param string $email
      * @param string $code
      *
-     * @return bool|int
+     * @return bool
      * @throws PrestaShopException
      */
     protected function sendVoucher($email, $code)
     {
-        return Mail::Send($this->context->language->id, 'newsletter_voucher', Mail::l('Newsletter voucher', $this->context->language->id), array('{discount}' => $code), $email, null, null, null, null, null, dirname(__FILE__) . '/mails/', false, $this->context->shop->id);
+        return Mail::Send($this->context->language->id, 'newsletter_voucher', Mail::l('Newsletter voucher', $this->context->language->id), ['{discount}' => $code], $email, null, null, null, null, null, dirname(__FILE__) . '/mails/', false, $this->context->shop->id);
     }
 
     /**
@@ -719,7 +721,7 @@ class Blocknewsletter extends Module
      */
     protected function sendConfirmationEmail($email)
     {
-        return Mail::Send($this->context->language->id, 'newsletter_conf', Mail::l('Newsletter confirmation', $this->context->language->id), array(), pSQL($email), null, null, null, null, null, dirname(__FILE__) . '/mails/', false, $this->context->shop->id);
+        return Mail::Send($this->context->language->id, 'newsletter_conf', Mail::l('Newsletter confirmation', $this->context->language->id), [], pSQL($email), null, null, null, null, null, dirname(__FILE__) . '/mails/', false, $this->context->shop->id);
     }
 
     /**
@@ -734,12 +736,12 @@ class Blocknewsletter extends Module
     protected function sendVerificationEmail($email, $token)
     {
         $verif_url = Context::getContext()->link->getModuleLink(
-            'blocknewsletter', 'verification', array(
+            'blocknewsletter', 'verification', [
                 'token' => $token,
-            )
+            ]
         );
 
-        return Mail::Send($this->context->language->id, 'newsletter_verif', Mail::l('Email verification', $this->context->language->id), array('{verif_url}' => $verif_url), $email, null, null, null, null, null, dirname(__FILE__) . '/mails/', false, $this->context->shop->id);
+        return Mail::Send($this->context->language->id, 'newsletter_verif', Mail::l('Email verification', $this->context->language->id), ['{verif_url}' => $verif_url], $email, null, null, null, null, null, dirname(__FILE__) . '/mails/', false, $this->context->shop->id);
     }
 
     /**
@@ -767,26 +769,30 @@ class Blocknewsletter extends Module
             $this->newsletterRegistration();
             if ($this->error) {
                 $this->smarty->assign(
-                    array(
+                    [
                         'color' => 'red',
                         'msg' => $this->error,
                         'nw_error' => true,
                         'action' => Tools::getValue('action')
-                    )
+                    ]
                 );
             } else {
                 if ($this->valid) {
                     $this->smarty->assign(
-                        array(
+                        [
                             'color' => 'green',
                             'msg' => $this->valid,
                             'nw_error' => false
-                        )
+                        ]
                     );
                 }
             }
         }
-        $this->smarty->assign('this_path', $this->_path);
+        $this->smarty->assign([
+            'this_path', $this->_path,
+            'newsletterCaptcha' => (string)$this->renderCaptcha()
+        ]);
+
     }
 
     /**
@@ -799,10 +805,7 @@ class Blocknewsletter extends Module
      */
     public function hookDisplayLeftColumn($params)
     {
-        if (!isset($this->prepared) || !$this->prepared) {
-            $this->_prepareHook($params);
-        }
-        $this->prepared = true;
+        $this->_prepareHook($params);
         return $this->display(__FILE__, 'blocknewsletter.tpl');
     }
 
@@ -872,60 +875,89 @@ class Blocknewsletter extends Module
      */
     public function renderForm()
     {
-        $fields_form = array(
-            'form' => array(
-                'legend' => array(
+        $captchas = [
+            [
+                'id' => '',
+                'name' => $this->l('Don\'t use captcha')
+            ]
+        ];
+        foreach ($this->getCaptchaImplementations() as $id => $captcha) {
+            $captchas[] = [
+                'id' => $id,
+                'name' => $captcha['name']
+            ];
+        }
+
+        $fields_form = [
+            'form' => [
+                'legend' => [
                     'title' => $this->l('Settings'),
                     'icon' => 'icon-cogs'
-                ),
-                'input' => array(
-                    array(
+                ],
+                'input' => [
+                    [
                         'type' => 'switch',
                         'label' => $this->l('Would you like to send a verification email after subscription?'),
                         'name' => 'NW_VERIFICATION_EMAIL',
-                        'values' => array(
-                            array(
+                        'values' => [
+                            [
                                 'id' => 'active_on',
                                 'value' => 1,
                                 'label' => $this->l('Yes')
-                            ),
-                            array(
+                            ],
+                            [
                                 'id' => 'active_off',
                                 'value' => 0,
                                 'label' => $this->l('No')
-                            )
-                        ),
-                    ),
-                    array(
+                            ]
+                        ],
+                    ],
+                    [
                         'type' => 'switch',
                         'label' => $this->l('Would you like to send a confirmation email after subscription?'),
                         'name' => 'NW_CONFIRMATION_EMAIL',
-                        'values' => array(
-                            array(
+                        'values' => [
+                            [
                                 'id' => 'active_on',
                                 'value' => 1,
                                 'label' => $this->l('Yes')
-                            ),
-                            array(
+                            ],
+                            [
                                 'id' => 'active_off',
                                 'value' => 0,
                                 'label' => $this->l('No')
-                            )
-                        ),
-                    ),
-                    array(
+                            ]
+                        ],
+                    ],
+                    [
                         'type' => 'text',
                         'label' => $this->l('Welcome voucher code'),
                         'name' => 'NW_VOUCHER_CODE',
                         'class' => 'fixed-width-md',
                         'desc' => $this->l('Leave blank to disable by default.')
-                    ),
-                ),
-                'submit' => array(
+                    ],
+                    [
+                        'type'    => 'select',
+                        'label'   => $this->l('Captcha'),
+                        'name'    => static::SETTINGS_KEY_CAPTCHA,
+                        'options' => [
+                            'query' => $captchas,
+                            'id'    => 'id',
+                            'name'  => 'name',
+                        ],
+                        'desc' => (count($captchas) === 1)
+                            ? $this->l('Warning: no supported captcha modules are currently installed')
+                            : ''
+                    ],
+                ],
+                'submit' => [
                     'title' => $this->l('Save'),
-                )
-            ),
-        );
+                ]
+            ],
+        ];
+
+        /** @var AdminController $controller */
+        $controller = $this->context->controller;
 
         $helper = new HelperForm();
         $helper->show_toolbar = false;
@@ -937,13 +969,13 @@ class Blocknewsletter extends Module
         $helper->submit_action = 'submitUpdate';
         $helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false) . '&configure=' . $this->name . '&tab_module=' . $this->tab . '&module_name=' . $this->name;
         $helper->token = Tools::getAdminTokenLite('AdminModules');
-        $helper->tpl_vars = array(
+        $helper->tpl_vars = [
             'fields_value' => $this->getConfigFieldsValues(),
-            'languages' => $this->context->controller->getLanguages(),
+            'languages' => $controller->getLanguages(),
             'id_language' => $this->context->language->id
-        );
+        ];
 
-        return $helper->generateForm(array($fields_form));
+        return $helper->generateForm([$fields_form]);
     }
 
     /**
@@ -958,32 +990,32 @@ class Blocknewsletter extends Module
         $countries = Country::getCountries($this->context->language->id);
 
         // ...formatting array
-        $countries_list = array(array('id' => 0, 'name' => $this->l('All countries')));
+        $countries_list = [['id' => 0, 'name' => $this->l('All countries')]];
         foreach ($countries as $country) {
-            $countries_list[] = array('id' => $country['id_country'], 'name' => $country['name']);
+            $countries_list[] = ['id' => $country['id_country'], 'name' => $country['name']];
         }
 
-        $fields_form = array(
-            'form' => array(
-                'legend' => array(
+        $fields_form = [
+            'form' => [
+                'legend' => [
                     'title' => $this->l('Export customers\' addresses'),
                     'icon' => 'icon-envelope'
-                ),
-                'input' => array(
-                    array(
+                ],
+                'input' => [
+                    [
                         'type' => 'select',
                         'label' => $this->l('Customers\' country'),
                         'desc' => $this->l('Filter customers by country.'),
                         'name' => 'COUNTRY',
                         'required' => false,
                         'default_value' => (int)$this->context->country->id,
-                        'options' => array(
+                        'options' => [
                             'query' => $countries_list,
                             'id' => 'id',
                             'name' => 'name',
-                        )
-                    ),
-                    array(
+                        ]
+                    ],
+                    [
                         'type' => 'select',
                         'label' => $this->l('Newsletter subscribers'),
                         'desc' => $this->l('Filter customers who have subscribed to the newsletter or not, and who have an account or not.'),
@@ -991,18 +1023,18 @@ class Blocknewsletter extends Module
                         'name' => 'SUSCRIBERS',
                         'required' => false,
                         'default_value' => (int)$this->context->country->id,
-                        'options' => array(
-                            'query' => array(
-                                array('id' => 0, 'name' => $this->l('All subscribers')),
-                                array('id' => 1, 'name' => $this->l('Subscribers with account')),
-                                array('id' => 2, 'name' => $this->l('Subscribers without account')),
-                                array('id' => 3, 'name' => $this->l('Non-subscribers'))
-                            ),
+                        'options' => [
+                            'query' => [
+                                ['id' => 0, 'name' => $this->l('All subscribers')],
+                                ['id' => 1, 'name' => $this->l('Subscribers with account')],
+                                ['id' => 2, 'name' => $this->l('Subscribers without account')],
+                                ['id' => 3, 'name' => $this->l('Non-subscribers')]
+                            ],
                             'id' => 'id',
                             'name' => 'name',
-                        )
-                    ),
-                    array(
+                        ]
+                    ],
+                    [
                         'type' => 'select',
                         'label' => $this->l('Opt-in subscribers'),
                         'desc' => $this->l('Filter customers who have agreed to receive your partners\' offers or not.'),
@@ -1010,28 +1042,31 @@ class Blocknewsletter extends Module
                         'name' => 'OPTIN',
                         'required' => false,
                         'default_value' => (int)$this->context->country->id,
-                        'options' => array(
-                            'query' => array(
-                                array('id' => 0, 'name' => $this->l('All customers')),
-                                array('id' => 2, 'name' => $this->l('Opt-in subscribers')),
-                                array('id' => 1, 'name' => $this->l('Opt-in non-subscribers'))
-                            ),
+                        'options' => [
+                            'query' => [
+                                ['id' => 0, 'name' => $this->l('All customers')],
+                                ['id' => 2, 'name' => $this->l('Opt-in subscribers')],
+                                ['id' => 1, 'name' => $this->l('Opt-in non-subscribers')]
+                            ],
                             'id' => 'id',
                             'name' => 'name',
-                        )
-                    ),
-                    array(
+                        ]
+                    ],
+                    [
                         'type' => 'hidden',
                         'name' => 'action',
-                    )
-                ),
-                'submit' => array(
+                    ]
+                ],
+                'submit' => [
                     'title' => $this->l('Export .CSV file'),
                     'class' => 'btn btn-default pull-right',
                     'name' => 'submitExport',
-                )
-            ),
-        );
+                ]
+            ],
+        ];
+
+        /** @var AdminController $controlelr */
+        $controller = $this->context->controller;
 
         $helper = new HelperForm();
         $helper->show_toolbar = false;
@@ -1044,13 +1079,13 @@ class Blocknewsletter extends Module
         $helper->submit_action = 'btnSubmit';
         $helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false) . '&configure=' . $this->name . '&tab_module=' . $this->tab . '&module_name=' . $this->name;
         $helper->token = Tools::getAdminTokenLite('AdminModules');
-        $helper->tpl_vars = array(
+        $helper->tpl_vars = [
             'fields_value' => $this->getConfigFieldsValues(),
-            'languages' => $this->context->controller->getLanguages(),
+            'languages' => $controller->getLanguages(),
             'id_language' => $this->context->language->id
-        );
+        ];
 
-        return $helper->generateForm(array($fields_form));
+        return $helper->generateForm([$fields_form]);
     }
 
     /**
@@ -1061,27 +1096,30 @@ class Blocknewsletter extends Module
      */
     public function renderSearchForm()
     {
-        $fields_form = array(
-            'form' => array(
-                'legend' => array(
+        $fields_form = [
+            'form' => [
+                'legend' => [
                     'title' => $this->l('Search for addresses'),
                     'icon' => 'icon-search'
-                ),
-                'input' => array(
-                    array(
+                ],
+                'input' => [
+                    [
                         'type' => 'text',
                         'label' => $this->l('Email address to search'),
                         'name' => 'searched_email',
                         'class' => 'fixed-width-xxl',
                         'desc' => $this->l('Example: contact@prestashop.com or @prestashop.com')
-                    ),
-                ),
-                'submit' => array(
+                    ],
+                ],
+                'submit' => [
                     'title' => $this->l('Search'),
                     'icon' => 'process-icon-refresh',
-                )
-            ),
-        );
+                ]
+            ],
+        ];
+
+        /** @var AdminController $controller */
+        $controller = $this->context->controller;
 
         $helper = new HelperForm();
         $helper->table = $this->table;
@@ -1089,13 +1127,13 @@ class Blocknewsletter extends Module
         $helper->submit_action = 'searchEmail';
         $helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false) . '&configure=' . $this->name . '&tab_module=' . $this->tab . '&module_name=' . $this->name;
         $helper->token = Tools::getAdminTokenLite('AdminModules');
-        $helper->tpl_vars = array(
-            'fields_value' => array('searched_email' => $this->_searched_email),
-            'languages' => $this->context->controller->getLanguages(),
+        $helper->tpl_vars = [
+            'fields_value' => ['searched_email' => $this->_searched_email],
+            'languages' => $controller->getLanguages(),
             'id_language' => $this->context->language->id
-        );
+        ];
 
-        return $helper->generateForm(array($fields_form));
+        return $helper->generateForm([$fields_form]);
     }
 
     /**
@@ -1104,7 +1142,8 @@ class Blocknewsletter extends Module
      */
     public function getConfigFieldsValues()
     {
-        return array(
+        return [
+            static::SETTINGS_KEY_CAPTCHA => Tools::getValue(static::SETTINGS_KEY_CAPTCHA, $this->getSelectedCaptchaKey()),
             'NW_VERIFICATION_EMAIL' => Tools::getValue('NW_VERIFICATION_EMAIL', Configuration::get('NW_VERIFICATION_EMAIL')),
             'NW_CONFIRMATION_EMAIL' => Tools::getValue('NW_CONFIRMATION_EMAIL', Configuration::get('NW_CONFIRMATION_EMAIL')),
             'NW_VOUCHER_CODE' => Tools::getValue('NW_VOUCHER_CODE', Configuration::get('NW_VOUCHER_CODE')),
@@ -1112,7 +1151,7 @@ class Blocknewsletter extends Module
             'SUSCRIBERS' => Tools::getValue('SUSCRIBERS'),
             'OPTIN' => Tools::getValue('OPTIN'),
             'action' => 'customers',
-        );
+        ];
     }
 
     /**
@@ -1131,8 +1170,8 @@ class Blocknewsletter extends Module
             if (!$nb = count($result)) {
                 $this->_html .= $this->displayError($this->l('No customers found with these filters!'));
             } elseif ($fd = @fopen(dirname(__FILE__) . '/' . preg_replace('#\.{2,}#', '.', Tools::getValue('action')) . '_' . $this->file, 'w')) {
-                $header = array('id', 'shop_name', 'gender', 'lastname', 'firstname', 'email', 'subscribed', 'subscribed_on');
-                $array_to_export = array_merge(array($header), $result);
+                $header = ['id', 'shop_name', 'gender', 'lastname', 'firstname', 'email', 'subscribed', 'subscribed_on'];
+                $array_to_export = array_merge([$header], $result);
                 foreach ($array_to_export as $tab) {
                     $this->myFputCsv($fd, $tab);
                 }
@@ -1176,7 +1215,7 @@ class Blocknewsletter extends Module
             $id_shop = (int)Context::getContext()->shop->id;
         }
 
-        $customers = array();
+        $customers = [];
         if ($who == 1 || $who == 0 || $who == 3) {
             $dbquery = new DbQuery();
             $dbquery->select('c.`id_customer` AS `id`, s.`name` AS `shop_name`, gl.`name` AS `gender`, c.`lastname`, c.`firstname`, c.`email`, c.`newsletter` AS `subscribed`, c.`newsletter_date_add`');
@@ -1202,7 +1241,7 @@ class Blocknewsletter extends Module
             $customers = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($dbquery->build());
         }
 
-        $non_customers = array();
+        $non_customers = [];
         if (($who == 0 || $who == 2) && (!$optin || $optin == 2) && !$country) {
             $dbquery = new DbQuery();
             $dbquery->select('CONCAT(\'N\', n.`id`) AS `id`, s.`name` AS `shop_name`, NULL AS `gender`, NULL AS `lastname`, NULL AS `firstname`, n.`email`, n.`active` AS `subscribed`, n.`newsletter_date_add`');
@@ -1309,5 +1348,85 @@ class Blocknewsletter extends Module
         }
 
         return false;
+    }
+
+    /**
+     * @return array
+     * @throws PrestaShopException
+     */
+    protected function getCaptchaImplementations()
+    {
+        $implemenentations = [];
+        // captcha
+        $responses = Hook::exec('actionRegisterCaptcha', [], null, true);
+        if (is_array($responses)) {
+            foreach ($responses as $module => $response) {
+                if (is_array($response) && isset($response['name']) && isset($response['render']) && isset($response['validate'])) {
+                    $implemenentations[$module] = $response;
+                }
+            }
+        }
+        return $implemenentations;
+    }
+
+
+    /**
+     * @return string
+     *
+     * @throws PrestaShopException
+     */
+    protected function renderCaptcha()
+    {
+        // captcha
+        $captcha = $this->getSelectedCaptcha();
+        if ($captcha) {
+            return (string)call_user_func($captcha['render'], $this->name);
+        }
+        return '';
+    }
+
+    /**
+     * @return string|null
+     * @throws PrestaShopException
+     */
+    protected function validateCaptcha()
+    {
+        $captcha = $this->getSelectedCaptcha();
+        if ($captcha) {
+            $validation = call_user_func($captcha['validate'], $this->name);
+            if ($validation === true) {
+                return null;
+            }
+            if ($validation === false) {
+                return $this->l('Please solve captcha');
+            }
+            return (string)$validation;
+        }
+        return null;
+    }
+
+    /**
+     * @return false|array
+     * @throws PrestaShopException
+     */
+    protected function getSelectedCaptcha()
+    {
+        $selected = Configuration::get(static::SETTINGS_KEY_CAPTCHA);
+        if ($selected) {
+            $captchas = $this->getCaptchaImplementations();
+            if (isset($captchas[$selected])) {
+                return $captchas[$selected];
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @return string
+     * @throws PrestaShopException
+     */
+    protected function getSelectedCaptchaKey()
+    {
+        return (string)Configuration::get(static::SETTINGS_KEY_CAPTCHA);
     }
 }
